@@ -4,6 +4,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version "2.1.21"
     kotlin("plugin.spring") version "2.1.21"
+    id("com.adarshr.test-logger") version "4.0.0"
 }
 
 group = "com.example"
