@@ -1,9 +1,7 @@
-
 package com.example.demo
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,8 +16,7 @@ class ApiHelloController(
 ) {
 
     @GetMapping("/hello")
-    fun hello(): String {
-        val authentication = SecurityContextHolder.getContext().authentication
+    fun hello(authentication: Authentication): String {
         return """
                 Hello ${authentication.name} from protected resource!
                 Your roles: ${authentication.authorities.joinToString()} 
