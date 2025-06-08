@@ -54,15 +54,7 @@ class DemoApplicationTest(
     fun `hämta token för user`() {
         val userClient = authProperties.clients.first { it.clientId == "user" }
 
-        val response = restClient
-            .post()
-            .uri("/oauth2/token")
-            .header(HttpHeaders.AUTHORIZATION, basicAuth(userClient.clientId, userClient.clientSecret))
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-            .body("""grant_type=client_credentials&scope=${scopes(userClient.scopes)}""")
-            .retrieve()
-            .onStatus({ true }) { _, _ -> }
-            .requiredBody<AccessTokenResponse>()
+        val response = accessTokenResponse(userClient)
 
         AccessTokenResponseAssert.assertThat(response)
             .accessTokenIsNotNull()
@@ -75,15 +67,7 @@ class DemoApplicationTest(
     fun `hämta token för admin med alla scopes`() {
         val adminClient = authProperties.clients.first { it.clientId == "admin" }
 
-        val response = restClient
-            .post()
-            .uri("/oauth2/token")
-            .header(HttpHeaders.AUTHORIZATION, basicAuth(adminClient.clientId, adminClient.clientSecret))
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-            .body("""grant_type=client_credentials&scope=${scopes(adminClient.scopes)}""")
-            .retrieve()
-            .onStatus({ true }) { _, _ -> }
-            .requiredBody<AccessTokenResponse>()
+        val response = accessTokenResponse(adminClient)
 
         AccessTokenResponseAssert.assertThat(response)
             .accessTokenIsNotNull()
@@ -103,7 +87,6 @@ class DemoApplicationTest(
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
             .body("""grant_type=client_credentials&scope=${adminClient.scopes.first()}""")
             .retrieve()
-            .onStatus({ true }) { _, _ -> }
             .requiredBody<AccessTokenResponse>()
 
         AccessTokenResponseAssert.assertThat(response)
@@ -112,6 +95,45 @@ class DemoApplicationTest(
             .hasScopes(setOf(adminClient.scopes.first()))
             .expiresInIs299()
     }
+
+    @Test
+    fun `anropa skyddad endpoint _hello som admin`() {
+        val adminClient = authProperties.clients.first { it.clientId == "admin" }
+        val accessToken = accessTokenResponse(adminClient).accessToken
+        val response = restClient
+            .get()
+            .uri("/api/hello")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $accessToken")
+            .retrieve()
+            .requiredBody<String>()
+
+        assertThat(response).isEqualTo(
+            """
+            Hello admin from protected resource!
+            Your roles: ROLE_read, ROLE_write 
+        """.trimIndent()
+        )
+        /*
+### Anropa skyddad endpoint /hello som admin
+GET http://localhost:8080/api/hello
+Authorization: Bearer {{access_token}}
+
+> {%
+    client.test("Status is 200", function () {
+        client.assert(response.status === 200, "Expected status to be 200 but got " + response.status);
+    });
+%}
+         */
+    }
+
+    private fun accessTokenResponse(userClient: AuthClientProperties) = restClient
+        .post()
+        .uri("/oauth2/token")
+        .header(HttpHeaders.AUTHORIZATION, basicAuth(userClient.clientId, userClient.clientSecret))
+        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        .body("""grant_type=client_credentials&scope=${scopes(userClient.scopes)}""")
+        .retrieve()
+        .requiredBody<AccessTokenResponse>()
 
     private fun scopes(scopes: List<String>): String {
         return scopes.joinToString(" ")
