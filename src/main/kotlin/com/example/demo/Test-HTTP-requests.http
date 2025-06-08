@@ -9,9 +9,19 @@ scope=read
 
 > {% client.global.set("access_token", response.body.access_token); %}
 
-### Anropa skyddad endpoint som user
+### Anropa skyddad endpoint /hello som user
 GET http://localhost:8080/api/hello
 Authorization: Bearer {{access_token}}
+
+### Anropa skyddad endpoint /user/data som user
+GET http://localhost:8080/api/user/data
+Authorization: Bearer {{access_token}}
+
+### Anropa skyddad endpoint /admin/data som user
+GET http://localhost:8080/api/admin/data
+Authorization: Bearer {{access_token}}
+
+
 
 ### Hämta token för admin
 POST http://localhost:8080/oauth2/token
@@ -24,6 +34,10 @@ scope=read write
 
 > {% client.global.set("access_token", response.body.access_token); %}
 
-### Anropa skyddad endpoint som admin
+### Anropa skyddad endpoint /hello som admin
 GET http://localhost:8080/api/hello
+Authorization: Bearer {{access_token}}
+
+### Anropa skyddad endpoint /admin/data som admin
+GET http://localhost:8080/api/admin/data
 Authorization: Bearer {{access_token}}
