@@ -10,3 +10,15 @@ spring:
           issuer-uri: http://localhost:8080
       authorization-server:
         issuer: http://localhost:8080
+
+auth:
+  clients:
+    - client-id: user
+      client-secret: secret
+      scopes:
+        - read
+    - client-id: admin
+      client-secret: secret
+      scopes:
+        - read
+        - write
