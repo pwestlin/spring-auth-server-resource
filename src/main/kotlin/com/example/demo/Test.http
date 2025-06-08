@@ -1,0 +1,29 @@
+### Hämta token för user
+POST http://localhost:8080/oauth2/token
+# user
+Authorization: Basic dXNlcjpzZWNyZXQ=
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials &
+scope=read
+
+> {% client.global.set("access_token", response.body.access_token); %}
+
+### Anropa skyddad endpoint som user
+GET http://localhost:8080/api/hello
+Authorization: Bearer {{access_token}}
+
+### Hämta token för admin
+POST http://localhost:8080/oauth2/token
+# admin
+Authorization: Basic YWRtaW46c2VjcmV0
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials &
+scope=read write
+
+> {% client.global.set("access_token", response.body.access_token); %}
+
+### Anropa skyddad endpoint som admin
+GET http://localhost:8080/api/hello
+Authorization: Bearer {{access_token}}
