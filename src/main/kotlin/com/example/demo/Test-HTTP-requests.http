@@ -1,3 +1,35 @@
+### Hämta token med felaktig inloggning (foo:bar)
+POST http://localhost:8080/oauth2/token
+# user
+Authorization: Basic Zm9vOmJhcg==
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials &
+scope=read
+
+> {%
+client.test("Status is 401", function() {
+  client.assert(response.status === 401, "Expected status to be 401 but got " + response.status);
+});
+client.global.set("access_token", response.body.access_token);
+%}
+
+### Hämta token för user med fel scope
+POST http://localhost:8080/oauth2/token
+# user
+Authorization: Basic dXNlcjpzZWNyZXQ=
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials &
+scope=read write
+
+> {%
+client.test("Status is 400", function() {
+  client.assert(response.status === 400, "Expected status to be 400 but got " + response.status);
+});
+client.global.set("access_token", response.body.access_token);
+%}
+
 ### Hämta token för user
 POST http://localhost:8080/oauth2/token
 # user
@@ -7,20 +39,42 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=client_credentials &
 scope=read
 
-> {% client.global.set("access_token", response.body.access_token); %}
+> {%
+client.test("Status is 200", function() {
+  client.assert(response.status === 200, "Expected status to be 200 but got " + response.status);
+});
+client.global.set("access_token", response.body.access_token);
+%}
 
 ### Anropa skyddad endpoint /hello som user
 GET http://localhost:8080/api/hello
 Authorization: Bearer {{access_token}}
 
+> {%
+client.test("Status is 200", function() {
+  client.assert(response.status === 200, "Expected status to be 200 but got " + response.status);
+});
+%}
+
 ### Anropa skyddad endpoint /user/data som user
 GET http://localhost:8080/api/user/data
 Authorization: Bearer {{access_token}}
+
+> {%
+client.test("Status is 200", function() {
+  client.assert(response.status === 200, "Expected status to be 200 but got " + response.status);
+});
+%}
 
 ### Anropa skyddad endpoint /admin/data som user
 GET http://localhost:8080/api/admin/data
 Authorization: Bearer {{access_token}}
 
+> {%
+client.test("Status is 403", function() {
+  client.assert(response.status === 403, "Expected status to be 403 but got " + response.status);
+});
+%}
 
 
 ### Hämta token för admin
@@ -32,12 +86,30 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=client_credentials &
 scope=read write
 
-> {% client.global.set("access_token", response.body.access_token); %}
+
+> {%
+client.test("Status is 200", function() {
+  client.assert(response.status === 200, "Expected status to be 200 but got " + response.status);
+});
+client.global.set("access_token", response.body.access_token);
+%}
 
 ### Anropa skyddad endpoint /hello som admin
 GET http://localhost:8080/api/hello
 Authorization: Bearer {{access_token}}
 
+> {%
+client.test("Status is 200", function() {
+  client.assert(response.status === 200, "Expected status to be 200 but got " + response.status);
+});
+%}
+
 ### Anropa skyddad endpoint /admin/data som admin
 GET http://localhost:8080/api/admin/data
 Authorization: Bearer {{access_token}}
+
+> {%
+client.test("Status is 200", function() {
+  client.assert(response.status === 200, "Expected status to be 200 but got " + response.status);
+});
+%}
